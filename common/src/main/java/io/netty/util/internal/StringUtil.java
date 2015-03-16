@@ -28,14 +28,18 @@ import static io.netty.util.internal.ObjectUtil.checkNotNull;
  */
 public final class StringUtil {
 
+    public static final String EMPTY_STRING = "";
     public static final String NEWLINE;
+
     public static final char DOUBLE_QUOTE = '\"';
     public static final char COMMA = ',';
     public static final char LINE_FEED = '\n';
     public static final char CARRIAGE_RETURN = '\r';
+    public static final char TAB = '\t';
+
     private static final String[] BYTE2HEX_PAD = new String[256];
     private static final String[] BYTE2HEX_NOPAD = new String[256];
-    private static final String EMPTY_STRING = "";
+
     /**
      * 2 - Quote character at beginning and end.
      * 5 - Extra allowance for anticipated escape characters that may be added.

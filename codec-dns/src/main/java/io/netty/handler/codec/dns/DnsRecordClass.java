@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 The Netty Project
+ * Copyright 2015 The Netty Project
  *
  * The Netty Project licenses this file to you under the Apache License,
  * version 2.0 (the "License"); you may not use this file except in compliance
@@ -15,31 +15,27 @@
  */
 package io.netty.handler.codec.dns;
 
+import static io.netty.util.internal.ObjectUtil.checkNotNull;
+
 /**
  * Represents a class field in DNS protocol
  */
-public final class DnsClass implements Comparable<DnsClass> {
+public class DnsRecordClass implements Comparable<DnsRecordClass> {
 
     /**
      * Default class for DNS entries.
      */
-    public static final DnsClass IN = new DnsClass(0x0001, "IN");
-    public static final DnsClass CSNET = new DnsClass(0x0002, "CSNET");
-    public static final DnsClass CHAOS = new DnsClass(0x0003, "CHAOS");
-    public static final DnsClass HESIOD = new DnsClass(0x0004, "HESIOD");
-    public static final DnsClass NONE = new DnsClass(0x00fe, "NONE");
-    public static final DnsClass ANY = new DnsClass(0x00ff, "ANY");
+    public static final DnsRecordClass IN = new DnsRecordClass(0x0001, "IN");
+    public static final DnsRecordClass CSNET = new DnsRecordClass(0x0002, "CSNET");
+    public static final DnsRecordClass CHAOS = new DnsRecordClass(0x0003, "CHAOS");
+    public static final DnsRecordClass HESIOD = new DnsRecordClass(0x0004, "HESIOD");
+    public static final DnsRecordClass NONE = new DnsRecordClass(0x00fe, "NONE");
+    public static final DnsRecordClass ANY = new DnsRecordClass(0x00ff, "ANY");
 
     private static final String EXPECTED =
-            " (expected: " +
-            IN + '(' + IN.intValue() + "), " +
-            CSNET + '(' + CSNET.intValue() + "), " +
-            CHAOS + '(' + CHAOS.intValue() + "), " +
-            HESIOD + '(' + HESIOD.intValue() + "), " +
-            NONE + '(' + NONE.intValue() + "), " +
-            ANY + '(' + ANY.intValue() + "))";
+            " (expected: " + IN + ", " + CSNET + ", " + CHAOS + ", " + HESIOD + ", " + NONE + ", " + ANY + ')';
 
-    public static DnsClass valueOf(String name) {
+    public static DnsRecordClass valueOf(String name) {
         if (IN.name().equals(name)) {
             return IN;
         }
@@ -62,7 +58,7 @@ public final class DnsClass implements Comparable<DnsClass> {
         throw new IllegalArgumentException("name: " + name + EXPECTED);
     }
 
-    public static DnsClass valueOf(int intValue) {
+    public static DnsRecordClass valueOf(int intValue) {
         switch (intValue) {
         case 0x0001:
             return IN;
@@ -77,7 +73,7 @@ public final class DnsClass implements Comparable<DnsClass> {
         case 0x00ff:
             return ANY;
         default:
-            return new DnsClass(intValue, "UNKNOWN");
+            return new DnsRecordClass(intValue, "UNKNOWN");
         }
     }
 
@@ -87,8 +83,8 @@ public final class DnsClass implements Comparable<DnsClass> {
      * @param clazz The class
      * @param name The name
      */
-    public static DnsClass valueOf(int clazz, String name) {
-        return new DnsClass(clazz, name);
+    public static DnsRecordClass valueOf(int clazz, String name) {
+        return new DnsRecordClass(clazz, name);
     }
 
     /**
@@ -101,13 +97,19 @@ public final class DnsClass implements Comparable<DnsClass> {
      */
     private final String name;
 
-    private DnsClass(int intValue, String name) {
+    private String text;
+
+    public DnsRecordClass(int intValue) {
+        this(intValue, "UNKNOWN");
+    }
+
+    public DnsRecordClass(int intValue, String name) {
         if ((intValue & 0xffff) != intValue) {
             throw new IllegalArgumentException("intValue: " + intValue + " (expected: 0 ~ 65535)");
         }
 
         this.intValue = intValue;
-        this.name = name;
+        this.name = checkNotNull(name, "name");
     }
 
     /**
@@ -131,16 +133,20 @@ public final class DnsClass implements Comparable<DnsClass> {
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof DnsClass && ((DnsClass) o).intValue == intValue;
+        return o instanceof DnsRecordClass && ((DnsRecordClass) o).intValue == intValue;
     }
 
     @Override
-    public int compareTo(DnsClass o) {
+    public int compareTo(DnsRecordClass o) {
         return intValue() - o.intValue();
     }
 
     @Override
     public String toString() {
-        return name;
+        String text = this.text;
+        if (text == null) {
+            this.text = text = name + '(' + intValue() + ')';
+        }
+        return text;
     }
 }

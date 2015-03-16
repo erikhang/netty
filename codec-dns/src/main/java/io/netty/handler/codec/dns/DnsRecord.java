@@ -16,12 +16,28 @@
 package io.netty.handler.codec.dns;
 
 /**
- * A DNS question.
+ * Represents any resource record (answer, authority, or additional resource
+ * records).
  */
-public interface DnsQuestion extends DnsRecord {
+public interface DnsRecord {
+
     /**
-     * An unused property. This method will always return {@code 0}.
+     * Returns the name of this record (the domain).
      */
-    @Override
+    String name();
+
+    /**
+     * Returns the type of resource record to be received.
+     */
+    DnsRecordType type();
+
+    /**
+     * Returns the class for this entry.
+     */
+    DnsRecordClass dnsClass();
+
+    /**
+     * Returns the time to live after reading for this resource record.
+     */
     long timeToLive();
 }
