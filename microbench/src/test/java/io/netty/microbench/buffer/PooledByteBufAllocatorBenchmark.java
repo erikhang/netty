@@ -21,11 +21,8 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.microbench.util.AbstractMicrobenchmark;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
-import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.Threads;
-
-import java.util.Arrays;
 
 @Threads(1)
 public class PooledByteBufAllocatorBenchmark extends AbstractMicrobenchmark {
@@ -33,10 +30,7 @@ public class PooledByteBufAllocatorBenchmark extends AbstractMicrobenchmark {
     private static final ByteBufAllocator pooledAllocator = PooledByteBufAllocator.DEFAULT;
     private static final int SIZE = 8;
 
-    private final ByteBuf[] buffers = new ByteBuf[1024];
-
-    @Param({ "00008", "00016", "00032", "00064" })
-    public int allocations;
+    private final ByteBuf[] buffers = new ByteBuf[512];
 
     @Setup(Level.Trial)
     public void populateCache() {
@@ -50,18 +44,17 @@ public class PooledByteBufAllocatorBenchmark extends AbstractMicrobenchmark {
         for (ByteBuf buf: buffers) {
             buf.release();
         }
-        Arrays.fill(buffers, null);
     }
 
     @Benchmark
     public ByteBuf[] allocAndFree() {
         // Allocate again which should now be served out of the
         // ThreadLocal cache
-        for (int i = 0; i < allocations; i++) {
+        for (int i = 0; i < buffers.length; i++) {
             buffers[i] = pooledAllocator.heapBuffer(SIZE);
         }
 
-        for (int i = 0; i < allocations; i++) {
+        for (int i = 0; i < buffers.length; i++) {
             buffers[i].release();
         }
         return buffers;
