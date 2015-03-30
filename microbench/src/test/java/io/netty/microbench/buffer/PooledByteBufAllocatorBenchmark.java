@@ -27,16 +27,18 @@ import org.openjdk.jmh.annotations.Threads;
 @Threads(1)
 public class PooledByteBufAllocatorBenchmark extends AbstractMicrobenchmark {
 
-    private static final ByteBufAllocator pooledAllocator = PooledByteBufAllocator.DEFAULT;
-    private static final int SIZE = 8;
+    private static final ByteBufAllocator ALLOC = PooledByteBufAllocator.DEFAULT;
+    private static final int SIZE = 1024;
+    private static final int ALLOCATIONS = 50;
+    private static final byte BYTE = '0';
 
-    private final ByteBuf[] buffers = new ByteBuf[512];
+    private final ByteBuf[] buffers = new ByteBuf[256];
 
     @Setup(Level.Trial)
     public void populateCache() {
         // Allocate multiple times
         for (int i = 0; i < buffers.length; i++) {
-            buffers[i] = pooledAllocator.heapBuffer(SIZE);
+            buffers[i] = ALLOC.heapBuffer(SIZE);
         }
 
         // Release all previous allocated buffers which means
@@ -50,12 +52,18 @@ public class PooledByteBufAllocatorBenchmark extends AbstractMicrobenchmark {
     public ByteBuf[] allocAndFree() {
         // Allocate again which should now be served out of the
         // ThreadLocal cache
-        for (int i = 0; i < buffers.length; i++) {
-            buffers[i] = pooledAllocator.heapBuffer(SIZE);
+        for (int i = 0; i < ALLOCATIONS; i++) {
+            ByteBuf buf = ALLOC.heapBuffer(SIZE);
+            // touch each cache-line in the buffer
+            for (int a = 0; a < SIZE; a += 64) {
+                buf.setByte(a, BYTE);
+            }
+            buffers[i] = buf;
         }
 
-        for (int i = 0; i < buffers.length; i++) {
-            buffers[i].release();
+        for (int i = 0; i < ALLOCATIONS; i++) {
+            ByteBuf buf = buffers[i];
+            buf.release();
         }
         return buffers;
     }
