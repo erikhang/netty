@@ -27,7 +27,7 @@ import org.openjdk.jmh.annotations.Threads;
 
 import java.util.Arrays;
 
-@Threads(4)
+@Threads(1)
 public class PooledByteBufAllocatorBenchmark extends AbstractMicrobenchmark {
 
     private static final ByteBufAllocator pooledAllocator = PooledByteBufAllocator.DEFAULT;
@@ -42,7 +42,7 @@ public class PooledByteBufAllocatorBenchmark extends AbstractMicrobenchmark {
     public void populateCache() {
         // Allocate multiple times
         for (int i = 0; i < buffers.length; i++) {
-            buffers[i] = pooledAllocator.buffer(SIZE);
+            buffers[i] = pooledAllocator.heapBuffer(SIZE);
         }
 
         // Release all previous allocated buffers which means
@@ -53,25 +53,17 @@ public class PooledByteBufAllocatorBenchmark extends AbstractMicrobenchmark {
         Arrays.fill(buffers, null);
     }
 
-    @Setup(Level.Iteration)
-    public void releaseBuffers() {
-        for (ByteBuf buf: buffers) {
-            if (buf == null) {
-                break;
-            }
-            buf.release();
-        }
-        Arrays.fill(buffers, null);
-    }
-
     @Benchmark
-    public ByteBuf[] allocAndFreeD() {
+    public ByteBuf[] allocAndFree() {
         // Allocate again which should now be served out of the
         // ThreadLocal cache
         for (int i = 0; i < allocations; i++) {
-            buffers[i] = pooledAllocator.buffer(SIZE);
+            buffers[i] = pooledAllocator.heapBuffer(SIZE);
         }
 
+        for (int i = 0; i < allocations; i++) {
+            buffers[i].release();
+        }
         return buffers;
     }
 }
